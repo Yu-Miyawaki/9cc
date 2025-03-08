@@ -1,7 +1,13 @@
 
 .DS_Store
 
-# 拡張子があるもののみ
+/9cc
+/9cc.s
+tmp*
+a.out
+*~
+*.o
+
 step*/*
 !step*/*.*
 
