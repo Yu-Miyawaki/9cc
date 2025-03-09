@@ -10,6 +10,7 @@ $ docker run --rm -it -v $HOME/Documents/project/9cc:/9cc -w /9cc compilerbook
 ## テスト
 
 ```bash
+$ make test
 $ bash -x test.sh
 ```
 
@@ -54,5 +55,9 @@ ARMではアセンブリ記法がUAL規格に統一されている
 ccは標準のCコンパイラ, gccはGNU Compiler Collection  
 普通cc -> gccで、コンテナでも/usr/bin/cc -> /etc/alternatives/cc -> /usr/bin/gcc  
 -gオプションではデバッグ情報がアセンブリに含まれるので$USER等が含まれないよう注意
-.sh: ''はリテラル  
+.sh: ''はリテラルで変数展開されない  
 .sh: if文の中身はコマンドなのでスペースが必要, 文字列は=, 数値は-eq,ne  
+
+### step2
+
+ARMではadd, subは+=ではなく=なのでx0が2個必要  
