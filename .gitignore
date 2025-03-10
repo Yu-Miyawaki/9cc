@@ -1,6 +1,7 @@
 
 .DS_Store
 /.vscode
+/Dockerfile
 
 /9cc
 /9cc.s
