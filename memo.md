@@ -65,3 +65,9 @@ ARMではadd, subは+=ではなく=
 
 ### step3
 
+C:
+* usingはない
+* va_list, va_start, vprintf - stdarg.hで定義されている可変長引数のprintf
+この3つをセットでerror関数みたいに使う (大元の引数はconstをつけるものが多い?)
+* C23以前にはbool型はなくstdbool.hのマクロを用いる
+* そのまま使う場合structやenumの前にはtypedefが必要
