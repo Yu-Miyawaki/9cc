@@ -68,6 +68,19 @@ ARMではadd, subは+=ではなく=
 C:
 * usingはない
 * va_list, va_start, vprintf - stdarg.hで定義されている可変長引数のprintf
-この3つをセットでerror関数みたいに使う (大元の引数はconstをつけるものが多い?)
+この3つをセットでerror関数みたいに使う (大元の引数はconstをつけるものが多い?)  
+va_list: 可変長引数リストの型  
+va_start: va_listと固定長引数の最後を渡すとva_listにリストが格納される  
+vfprintf(出力先, フォーマット文字列, va_list)  
+va_end(va_list): ポインタにNULLをセットし引数の取得を終了する
 * C23以前にはbool型はなくstdbool.hのマクロを用いる
 * そのまま使う場合structやenumの前にはtypedefが必要
+
+### step4
+
+C:
+* フォーマット指定子に*をつけると個数を表す
+
+---
+
+### 構文解析

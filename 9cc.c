@@ -24,6 +24,25 @@ struct Token {
 
 // 現在着目しているトークン(グローバル変数)
 Token *token;
+// 入力プログラム
+char *user_input;
+
+// エラー箇所の報告
+// loc: 入力プログラムの対象の位置のポインタ
+void error_at(char *loc, char *fmt, ...){
+    va_list ap;
+    va_start(ap, fmt);
+
+    int pos = loc - user_input;
+    // printf("------pos: %d------", pos);
+    fprintf(stderr, "%s\n", user_input);
+    // pos個の空白を出力
+    fprintf(stderr, "%*s", pos, " ");
+    fprintf(stderr, "^ ");
+    vfprintf(stderr, fmt, ap);
+    fprintf(stderr, "\n");
+    exit(1);
+}
 
 // エラー報告
 void error(char *fmt, ...){
@@ -48,7 +67,7 @@ bool consume(char op){
 // 次のトークンがopならトークンを1つ読み進め、そうでないならエラー
 void expect(char op){
     if(token->kind != TK_RESERVED || token->str[0] != op){
-        error("'%c'ではありません", op);
+        error_at(token->str, "'%c'ではありません", op);
     }
     else{
         token = token->next;
@@ -58,7 +77,7 @@ void expect(char op){
 // 次のトークンがopならトークンを1つ読み進め数字を返し、そうでないならエラー
 int expect_number(){
     if(token->kind != TK_NUM){
-        error("数ではありません");
+        error_at(token->str, "数ではありません");
     }
     int val = token->val;
     token = token->next;
@@ -99,7 +118,7 @@ Token *tokenize(char *p){
             continue;
         }
         else{
-            error("トークナイズできません");
+            error_at(token->str, "トークナイズできません");
         }
     }
 
@@ -115,6 +134,7 @@ int main(int argc, char* argv[]){
     }
     
     token = tokenize(argv[1]);
+    user_input = argv[1];
 
     printf(".globl main\n");
     printf("main:\n");
