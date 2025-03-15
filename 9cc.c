@@ -11,7 +11,6 @@ typedef enum {
     TK_NUM,      // 整数
     TK_EOF,      // EOF
 } Tokenkind;
-
 typedef struct Token Token;
 
 // トークン型
@@ -20,6 +19,24 @@ struct Token {
     Token *next;    // 次のトークン
     int val;        // TK_NUMの値
     char *str;      // トークン文字列
+};
+
+// 四則演算ASTのノードの種類
+typedef enum {
+    ND_ADD,
+    ND_SUB,
+    ND_MUL,
+    ND_DIV,
+    ND_NUM,
+} NodeKind;
+typedef struct Node Node;
+
+// 四則演算ASTのノード型
+struct Node {
+    NodeKind kind; // ノードの型
+    Node *lhs;     // 左辺: left-hand side
+    Node *rhs;     // 右辺
+    int val;       // numの場合
 };
 
 // 現在着目しているトークン(グローバル変数)
@@ -125,6 +142,72 @@ Token *tokenize(char *p){
     new_token(TK_EOF, cur, p);
     
     return head.next;
+}
+
+// 左辺と右辺から親ノードを作成し返す
+Node *new_node(NodeKind kind, Node *lhs, Node *rhs){
+    Node *node = calloc(1, sizeof(Node));
+    node->kind = kind;
+    node->lhs = lhs;
+    node->rhs = rhs;
+    return node;
+}
+
+// 数値根ノードを作成し返す
+Node *new_node_num(int val){
+    Node *node = calloc(1, sizeof(Node));
+    node->kind = ND_NUM;
+    node->val = val;
+    return node;
+}
+
+// ------以下の四則演算の文法のパーサ------
+// expr    = mul ("+" mul | "-" mul)*
+// mul     = primary ("*" primary | "/" primary)*
+// primary = num | "(" expr ")"
+
+Node *expr(){
+    Node *node = mul();
+    
+    while(true){
+        if(consume('+')){
+            node = new_node(ND_ADD, node, mul());
+        }
+        else if(consume('-')){
+            node = new_node(ND_SUB, node, mul());
+        }
+        else{
+            return node;
+        }
+    }
+}
+
+Node *mul(){
+    Node *node = primary();
+
+    while(true){
+        if(consume('*')){
+            node = new_node(ND_MUL, node, primary());
+        }
+        else if(consume('/')){
+            node = new_node(ND_DIV, node, primary());
+        }
+        else{
+            return node;
+        }
+    }
+}
+
+Node *primary(){
+    // num or ()
+    if(consume('(')){
+        Node *node = expr();
+        expect(')');
+        return node;
+    }
+    else{
+        return new_node_num(expect_number());
+    }
 }
 
 int main(int argc, char* argv[]){
