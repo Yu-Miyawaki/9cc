@@ -210,6 +210,43 @@ Node *primary(){
     }
 }
 
+void gen(Node *node){
+    if(node->kind == ND_NUM){
+        // push val
+        printf("    str %d, [sp, -8]!\n", node->val);
+        return;
+    }
+
+    gen(node->lhs);
+    gen(node->rhs);
+
+    // pop 右部分木: 第2オペランド
+    printf("    ldr x1, [sp], #8");
+    // 左部分木
+    printf("    ldr x0, [sp], #8");
+
+    switch (node->kind){
+    case ND_ADD:
+        printf("    add x0, x0, x1\n");
+        break;
+    case ND_SUB:
+        printf("    sub x0, x0, x1\n");
+        break;
+    case ND_MUL:
+        printf("    nul x0, x0, x1\n");
+        break;
+    case ND_DIV:
+        printf("    sdiv x0, x0, x1\n");
+        break;
+    default:
+        error_at(token->str, "生成できません");
+        break;
+    }
+
+    // push
+    printf("    str x0, [sp, -8]!\n");
+}
+
 int main(int argc, char* argv[]){
     if(argc != 2){
         fprintf(stderr, "引数の個数が正しくありません\n");
