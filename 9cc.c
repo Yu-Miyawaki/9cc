@@ -125,7 +125,7 @@ Token *tokenize(char *p){
             ++p;
             continue;
         }
-        else if(*p == '+' || *p == '-'){
+        else if(strchr("+-*/()", *p)){
             cur = new_token(TK_RESERVED, cur, p++);
             continue;
         }
@@ -165,6 +165,9 @@ Node *new_node_num(int val){
 // expr    = mul ("+" mul | "-" mul)*
 // mul     = primary ("*" primary | "/" primary)*
 // primary = num | "(" expr ")"
+
+Node *mul();
+Node *primary();
 
 Node *expr(){
     Node *node = mul();
@@ -213,7 +216,8 @@ Node *primary(){
 void gen(Node *node){
     if(node->kind == ND_NUM){
         // push val
-        printf("    str %d, [sp, -8]!\n", node->val);
+        printf("    mov x0, #%d\n", node->val);
+        printf("    str x0, [sp, -16]!\n");
         return;
     }
 
@@ -221,9 +225,9 @@ void gen(Node *node){
     gen(node->rhs);
 
     // pop 右部分木: 第2オペランド
-    printf("    ldr x1, [sp], #8");
+    printf("    ldr x1, [sp], #16\n");
     // 左部分木
-    printf("    ldr x0, [sp], #8");
+    printf("    ldr x0, [sp], #16\n");
 
     switch (node->kind){
     case ND_ADD:
@@ -233,7 +237,7 @@ void gen(Node *node){
         printf("    sub x0, x0, x1\n");
         break;
     case ND_MUL:
-        printf("    nul x0, x0, x1\n");
+        printf("    mul x0, x0, x1\n");
         break;
     case ND_DIV:
         printf("    sdiv x0, x0, x1\n");
@@ -244,34 +248,27 @@ void gen(Node *node){
     }
 
     // push
-    printf("    str x0, [sp, -8]!\n");
+    printf("    str x0, [sp, -16]!\n");
 }
 
 int main(int argc, char* argv[]){
     if(argc != 2){
-        fprintf(stderr, "引数の個数が正しくありません\n");
+        error("引数の個数が正しくありません\n");
         return 1;
     }
     
-    token = tokenize(argv[1]);
+    // トークナイズとパース
     user_input = argv[1];
+    token = tokenize(argv[1]);
+    Node *node = expr();
 
     printf(".globl main\n");
     printf("main:\n");
 
-    // 最初は数字で始まる必要がある
-    printf("    mov x0, %d\n", expect_number());
+    gen(node);
 
-    // (+ or -) <数字>の並びからアセンブリを出力
-    while(!at_eof()){
-        if(consume('+')){
-            printf("    add x0, x0, %d\n", expect_number());
-            continue;
-        }
-        expect('-');
-        printf("    sub x0, x0, %d\n", expect_number());
-    }
-
+    // スタックトップの値を返す
+    printf("    ldr x0, [sp], #16\n");
     printf("    ret\n");
     
     return 0;
