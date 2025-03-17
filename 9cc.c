@@ -163,11 +163,13 @@ Node *new_node_num(int val){
 
 // ------以下の四則演算の文法のパーサ------
 // expr    = mul ("+" mul | "-" mul)*
-// mul     = primary ("*" primary | "/" primary)*
+// mul     = unary ("*" unary | "/" unary)*
+// unary   = ("+" | "-")? primary
 // primary = num | "(" expr ")"
 
 Node *mul();
 Node *primary();
+Node *unary();
 
 Node *expr(){
     Node *node = mul();
@@ -186,18 +188,31 @@ Node *expr(){
 }
 
 Node *mul(){
-    Node *node = primary();
+    Node *node = unary();
 
     while(true){
         if(consume('*')){
-            node = new_node(ND_MUL, node, primary());
+            node = new_node(ND_MUL, node, unary());
         }
         else if(consume('/')){
-            node = new_node(ND_DIV, node, primary());
+            node = new_node(ND_DIV, node, unary());
         }
         else{
             return node;
         }
+    }
+}
+
+Node *unary(){
+    if(consume('+')){
+        return primary();
+    }
+    else if(consume('-')){
+        // 簡単のため0-xとみなす
+        return new_node(ND_SUB, new_node_num(0), primary());
+    }
+    else{
+        return primary();
     }
 }
 
