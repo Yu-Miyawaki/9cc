@@ -91,24 +91,49 @@ C:
 ### スタックマシン
 
 * imul - 符号つき(i: Integer ?)
-* RDX - データレジスタ: 計算結果の一時記憶
+* RDX - データレジスタ: 計算結果の一時記憶  
    64*64bitの上位64bit, 128/64bitの被除数上位64bit, 余り, その他汎用レジスタ
 * idiv - cqoによりRAX -> RDX:RAXに符号拡張して商をRAX, 余りをRDXに格納
 
 * ldr, str - ARMでのレジスタのLoad, Store
-* sp - Stack Pointer
-   スタックは大きいメモリから割り当てられる
-   spに対してはmovで即値を書き込むことはできない
+* sp - Stack Pointer  
+   スタックは大きいメモリから割り当てられる  
+   spに対してはmovで即値を書き込むことはできない  
    spをベースレジスタにする場合16バイトアライメントが必要
 * \# - 即値
 * ベースレジスタ - プログラムや関数の先頭のアドレス -> step9
 * ポップ - ldr x0, [sp], #16 - x0=*sp; sp+=16;
-* プッシュ - str x0, [sp, -16]! - sp-=16; *sp=x0;
+* プッシュ - str x0, [sp, -16]! - sp-=16; *sp=x0;  
    プリ/ポストインデックスアドレッシング
 * sdiv - 符号付き除算 (余りの計算は格納されない)
-* madd, msub - MULとそれ以外をまとめて行う: 順番に注意
+* madd, msub - MULとそれ以外をまとめて行う: 順番に注意  
    msub x3, x2, x1, x0 // x3 = x0 - (x2 * x1)
 
 ### step6
 
 unary: 単項の
+
+### step7
+
+x86-64
+* RFLAGS - フラグレジスタ: 1bitごとに異なるフラグを表す(上位の方は使われていない)
+* cmp - 第1オペランドを更新しないSUB: RFLAGSのZF(ゼロフラグ)などに値をセットする
+* sete - ZFから8bitレジスタにセット
+* [その他比較](https://azelpg.gitlab.io/azsky2/note/prog/asm64/fc_gen3.html)
+* AL - RAXの下位8bit
+* movzb - ゼロ拡張ロード: 小さいサイズのデータのロード時に0埋めする  
+   他に符号拡張(movs*)や指定した幅でコピーするストア(mov)など  
+   l(long): 32bit, w(word): 16bit, b(byte): 8bit
+
+ARM
+* NZCV - ARMでのフラグレジスタ  
+   対応: Z-ZF, N-SF(negative,符号フラグ), C-CF(キャリー), V-OF(Overflow)
+* eq - Z=1を表す条件
+* cset <レジスタ> 条件 - 条件に応じて1 or 0をセット(条件付きセット)
+* [その他条件](https://www.mztn.org/dragon/arm6408cond.html)  
+   lt: less than, ge: Greater than or Equal, lo: Lower, hs: Higher or Sameなど  
+   条件分岐ではb.eq <ブランチ>のように書きgoto文のように動作する
+* mov <> <即値>では1命令では特定のビットマスクに対して16ビットを設定するためそれ以上ではエラー表示が出る(が今回のtest自体は通る)  
+   movz, movkを組み合わせる[link /MOV(定数)](https://www.mztn.org/dragon/arm6405str.html)  
+   -2^16~2^16くらいがエラー表示の閾値なので17ビットのように見える?
+

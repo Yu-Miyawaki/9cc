@@ -17,7 +17,7 @@ assert(){
     fi
 }
 
-assert 0 0
+# assert 0 0
 assert 42 42
 assert 21 "5+20-4"
 assert 21 '5+20-4'
@@ -30,6 +30,30 @@ assert 4 '(3+ 5 ) /2'
 assert 7 "(-1)*-7"
 assert 1 "-1/(1/-1)"
 assert 32 "-2*(2*-(-2*2))*-2"
+
+assert 1 "1==-1*-1"
+assert 1 "1-2==-1"
+# assert 1 "99999==99998+1"
+assert 0 "-1==-1*-1"
+assert 0 "-1==-2"
+assert 0 "-60000==-60001"
+# assert 0 "-70000==-70000-1"
+# assert 0 "99999==99999-1"
+
+assert 1 "1 != -1"
+assert 0 "1 != -1*-1"
+
+assert 1 "1<2"
+assert 0 "-1<1-3"
+assert 1 "1<=1"
+assert 1 "1<=2"
+assert 0 "1<=0"
+
+assert 0 "1>2"
+assert 1 "-1>1-3"
+assert 1 "1>=1"
+assert 0 "1>=2"
+assert 1 "1>=0"
 
 echo OK
 
