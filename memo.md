@@ -30,7 +30,7 @@ step0
 
 ### アセンブラ
 
-`$ objdump -d -M intel <実行ファイル>`  
+`$ objdump -d -M intel <実行ファイル>` - ARM64では記法は統一されているので-Mは無効  
 `$ objdump -d -M reg-names-std <>`  
 `$ objdump --disassemble=main <>` - GNU  
 `$ objdump --disassemble-symbols=_main <>` - LLVM  
@@ -240,3 +240,17 @@ ARM
 * SMOV - 符号拡張コピー
 
 ---
+
+## 分割コンパイルとリンク
+
+.dataに置いたmainを実行するのはうまくいかなかった(-Wl,--omagicオプション時にundefined reference to `__ehdr_start'が発生する)
+ 
+* セクション - .text, .data, .bssなど
+
+### step8
+
+ifndefマクロで9始まりは使えないことに注意
+
+* LDFLAGS - リンカオプションだがこの時点では定義されていないので空
+   CFLAGSがCCに渡されているように*FLAGSは関連するコンパイラコマンドにマクロを渡す
+

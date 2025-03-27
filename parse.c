@@ -4,52 +4,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "9cc.h"
 
 // bool DEBUG_9CC = true;
 bool DEBUG_9CC = false;
-
-// トークンの種類
-typedef enum {
-    TK_RESERVED, // 記号
-    TK_NUM,      // 整数
-    TK_EOF,      // EOF
-} Tokenkind;
-typedef struct Token Token;
-
-// トークン型
-struct Token {
-    Tokenkind kind; // 型
-    Token *next;    // 次のトークン
-    int val;        // TK_NUMの値
-    char *str;      // トークン文字列
-    int len;        // トークン長
-};
-
-// 四則演算,比較演算ASTのノードの種類
-typedef enum {
-    // 四則演算
-    ND_ADD,
-    ND_SUB,
-    ND_MUL,
-    ND_DIV,
-    ND_NUM,
-    // 比較演算
-    ND_EQ,
-    ND_NE,
-    ND_LT,
-    ND_LE,
-    ND_GT,
-    ND_GE,
-} NodeKind;
-typedef struct Node Node;
-
-// 四則演算ASTのノード型
-struct Node {
-    NodeKind kind; // ノードの型
-    Node *lhs;     // 左辺: left-hand side
-    Node *rhs;     // 右辺
-    int val;       // numの場合
-};
 
 // 現在着目しているトークン(グローバル変数)
 Token *token;
@@ -321,90 +279,4 @@ Node *primary(){
     else{
         return new_node_num(expect_number());
     }
-}
-
-void gen(Node *node){
-    if(node->kind == ND_NUM){
-        // d_printf("---first num in gen\n---");
-        // push val
-        printf("    mov x0, #%d\n", node->val);
-        printf("    str x0, [sp, -16]!\n");
-        return;
-    }
-
-    gen(node->lhs);
-    gen(node->rhs);
-
-    // pop 右部分木: 第2オペランド
-    printf("    ldr x1, [sp], #16\n");
-    // 左部分木
-    printf("    ldr x0, [sp], #16\n");
-
-    switch (node->kind){
-    case ND_ADD:
-        printf("    add x0, x0, x1\n");
-        break;
-    case ND_SUB:
-        printf("    sub x0, x0, x1\n");
-        break;
-    case ND_MUL:
-        printf("    mul x0, x0, x1\n");
-        break;
-    case ND_DIV:
-        printf("    sdiv x0, x0, x1\n");
-        break;
-    case ND_EQ:
-        printf("    cmp x0, x1\n");
-        printf("    cset x0, eq\n");
-        break;
-    case ND_NE:
-        printf("    cmp x0, x1\n");
-        printf("    cset x0, ne\n");
-        break;
-    case ND_LT:
-        printf("    cmp x0, x1\n");
-        printf("    cset x0, lt\n");
-        break;
-    case ND_LE:
-        printf("    cmp x0, x1\n");
-        printf("    cset x0, le\n");
-        break;
-    case ND_GT:
-        printf("    cmp x0, x1\n");
-        printf("    cset x0, gt\n");
-        break;
-    case ND_GE:
-        printf("    cmp x0, x1\n");
-        printf("    cset x0, ge\n");
-        break;
-    default:
-        error_at(token->str, "生成できません");
-        break;
-    }
-
-    // push
-    printf("    str x0, [sp, -16]!\n");
-}
-
-int main(int argc, char* argv[]){
-    if(argc != 2){
-        error("引数の個数が正しくありません\n");
-        return 1;
-    }
-    
-    // トークナイズとパース
-    user_input = argv[1];
-    token = tokenize(argv[1]);
-    Node *node = expr();
-
-    printf(".globl main\n");
-    printf("main:\n");
-
-    gen(node);
-
-    // スタックトップの値を返す
-    printf("    ldr x0, [sp], #16\n");
-    printf("    ret\n");
-    
-    return 0;
 }
